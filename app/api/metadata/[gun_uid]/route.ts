@@ -1,16 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { gun_uid: string } }
+  _req: NextRequest,
+  context: { params: Promise<{ gun_uid: string }> }
 ) {
+  const { gun_uid } = await context.params
+
   const { data, error } = await supabaseAdmin
     .from('inventory')
     .select(
       'gun_uid, serial, make, model, caliber, ownership_state, owner_id, status'
     )
-    .eq('gun_uid', params.gun_uid)
+    .eq('gun_uid', gun_uid)
     .maybeSingle()
 
   if (error) {
