@@ -1,36 +1,199 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Full-stack blockchain registry system built with Next.js, Supabase and Solidity smart contracts.
 
-## Getting Started
 
-First, run the development server:
+Blockchain License Registry
 
-```bash
+A full-stack blockchain-based digital licensing system that demonstrates how ownership and licensing records can be issued, verified, and tracked using smart contracts and modern web infrastructure.
+
+The project combines smart contracts, a web application, and a backend database to create a transparent and tamper-resistant registry for licenses.
+
+The goal is to demonstrate how blockchain can be used to improve trust, auditability, and verification in licensing systems.
+
+Overview
+
+Traditional licensing systems rely on centralized databases that can be:
+
+altered
+
+mismanaged
+
+difficult to audit
+
+prone to fraud or duplication
+
+This project explores how blockchain technology can provide:
+
+immutability
+
+verifiable ownership
+
+transparent history
+
+tamper-resistant records
+
+By anchoring license records on-chain and combining them with modern backend infrastructure, the system enables secure issuance and verification of licenses.
+
+Features
+Smart Contract License Registry
+
+On-chain record of issued licenses
+
+Immutable ownership tracking
+
+Transparent verification of license validity
+
+License Issuance System
+
+Authorized entities can issue licenses that are recorded on-chain and linked to user identities.
+
+License Verification
+
+Anyone can verify whether a license exists and whether it is valid.
+
+Secure Backend
+
+Off-chain data and application logic are handled using a secure backend.
+
+Modern Web Interface
+
+A frontend dashboard allows users to interact with the system.
+
+Tech Stack
+Frontend
+
+Next.js
+
+React
+
+Tailwind (if used)
+
+Backend
+
+Supabase
+
+Postgres database
+
+API routes
+
+Blockchain
+
+Solidity smart contracts
+
+EVM-compatible networks
+
+Wallet interaction
+
+Web3 Tools
+
+ethers.js / web3 libraries
+
+MetaMask integration
+
+System Architecture
+User Interface (Next.js)
+        │
+        ▼
+Backend API (Supabase)
+        │
+        ▼
+Smart Contract (Solidity)
+        │
+        ▼
+Blockchain Network
+
+The frontend provides the interface for issuing and verifying licenses.
+
+The backend stores off-chain metadata and manages application logic.
+
+The smart contract stores the verifiable registry of licenses.
+
+The blockchain provides immutable proof of ownership and authenticity.
+
+Smart Contract Design
+
+The smart contract acts as the source of truth for license records.
+
+Core concepts include:
+
+License issuance
+
+License ownership
+
+License verification
+
+Immutable record tracking
+
+Security considerations include:
+
+access control
+
+ownership validation
+
+event logging for off-chain indexing
+
+Example Workflow
+
+An authority issues a license through the application.
+
+The license is recorded on-chain through the smart contract.
+
+The backend stores additional metadata.
+
+Users can verify the license through the interface.
+
+The smart contract ensures the record cannot be altered.
+
+Running the Project
+1 Clone the repository
+git clone https://github.com/Mabvuu/blockchain-license-registry.git
+cd blockchain-license-registry
+2 Install dependencies
+npm install
+3 Configure environment variables
+
+Create a .env file and add your configuration values.
+
+Example:
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+PRIVATE_KEY=
+RPC_URL=
+4 Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app will start on:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+http://localhost:3000
+Example Use Cases
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This architecture can be applied to systems such as:
 
-## Learn More
+professional licenses
 
-To learn more about Next.js, take a look at the following resources:
+digital certifications
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+asset ownership registries
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+compliance records
 
-## Deploy on Vercel
+government licensing systems
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Future Improvements
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+multi-chain deployment
+
+role-based access control
+
+contract upgrade patterns
+
+audit and monitoring tools
+
+event indexing service
+
+Author
+
+Patty Mabvuu
+Blockchain / Full Stack Developer
+
+GitHub: https://github.com/Mabvuu
