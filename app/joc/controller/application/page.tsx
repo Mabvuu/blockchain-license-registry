@@ -1,7 +1,6 @@
-// app/joc/controller/application/page.tsx
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import NavPage from '../nav/page'
 import { supabase } from '@/lib/supabase/client'
@@ -51,6 +50,14 @@ type CompetencyFull = {
 
 const competencySelect = 'id, full_name, notes'
 
+const COLORS = {
+  naturalAluminum: '#D9D8D6',
+  blackBlue: '#212B37',
+  snowWhite: '#FFFEF1',
+  lamar: '#3E5C80',
+  coolGreyMedium: '#ACACAC',
+} as const
+
 const statusColor = (status: string) => {
   switch (status) {
     case 'sent_to_joc_controller':
@@ -75,6 +82,7 @@ export default function JOCControllerApplicationsPage() {
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [actingId, setActingId] = useState<number | null>(null)
+  const [search, setSearch] = useState('')
 
   const requestedGunIds = useRef<Set<number>>(new Set())
   const requestedCompIds = useRef<Set<number>>(new Set())
@@ -253,32 +261,149 @@ export default function JOCControllerApplicationsPage() {
     }
   }
 
-  if (loading) return <div className="p-8">Loading…</div>
+  const filteredApps = useMemo(() => {
+    const term = search.trim().toLowerCase()
+
+    if (!term) return apps
+
+    return apps.filter((app) => {
+      return (
+        String(app.id).includes(term) ||
+        (app.applicant_name || '').toLowerCase().includes(term) ||
+        (app.applicant_email || '').toLowerCase().includes(term) ||
+        (app.national_id || '').toLowerCase().includes(term) ||
+        (app.province || '').toLowerCase().includes(term) ||
+        (app.district || '').toLowerCase().includes(term) ||
+        (app.status || '').toLowerCase().includes(term)
+      )
+    })
+  }, [apps, search])
+
+  const stats = useMemo(() => {
+    const total = apps.length
+    const approved = apps.filter((app) => app.status === 'approved').length
+    const declined = apps.filter((app) => app.status === 'declined').length
+    const pending = apps.filter((app) => !isFinalStatus(app.status)).length
+
+    return {
+      total,
+      approved,
+      declined,
+      pending,
+    }
+  }, [apps])
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen" style={{ backgroundColor: COLORS.snowWhite }}>
+        <div className="w-1/4 border-r" style={{ borderColor: COLORS.naturalAluminum }}>
+          <NavPage />
+        </div>
+
+        <div className="w-3/4 p-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm" style={{ color: COLORS.coolGreyMedium }}>
+                Loading applications...
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex min-h-screen">
-      <div className="w-1/4 border-r">
+    <div className="flex min-h-screen" style={{ backgroundColor: COLORS.snowWhite }}>
+      <div className="w-1/4 border-r" style={{ borderColor: COLORS.naturalAluminum }}>
         <NavPage />
       </div>
 
       <div className="w-3/4 p-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-semibold" style={{ color: COLORS.blackBlue }}>
+            JOC Controller Applications
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: COLORS.lamar }}>
+            Review assigned applications, approve, decline, or open wallet records.
+          </p>
+        </div>
+
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Total Applications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold">{stats.total}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Pending</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold">{stats.pending}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Approved</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold">{stats.approved}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Declined</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold">{stats.declined}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Search</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by applicant, email, national id, province, district, status or id"
+              className="w-full rounded-md border px-3 py-2 text-sm outline-none"
+            />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>JOC Controller Inbox</CardTitle>
           </CardHeader>
 
           <CardContent>
-            {errorMsg && <div className="border rounded p-3 text-sm text-red-600 mb-4">{errorMsg}</div>}
+            {errorMsg && <div className="mb-4 rounded border p-3 text-sm text-red-600">{errorMsg}</div>}
 
             {!errorMsg && !apps.length && (
-              <div className="border rounded p-3 text-sm text-muted-foreground">
+              <div className="rounded border p-3 text-sm text-muted-foreground">
                 No applications assigned to your email in <b>applications.joc_controller_email</b>.
               </div>
             )}
 
-            {!!apps.length && (
+            {!errorMsg && !!apps.length && !filteredApps.length && (
+              <div className="rounded border p-3 text-sm text-muted-foreground">
+                No matching applications found.
+              </div>
+            )}
+
+            {!!filteredApps.length && (
               <Accordion type="single" collapsible className="space-y-2">
-                {apps.map((app) => {
+                {filteredApps.map((app) => {
                   const gun = app.gun_uid ? guns[app.gun_uid] : null
                   const comp = app.competency_id ? competencies[app.competency_id] : null
                   const isBusy = actingId === app.id
@@ -287,19 +412,21 @@ export default function JOCControllerApplicationsPage() {
                   return (
                     <AccordionItem key={app.id} value={String(app.id)}>
                       <AccordionTrigger className="flex items-center gap-3 px-4">
-                        <div className={`w-2 h-8 rounded ${statusColor(app.status)}`} />
+                        <div className={`h-8 w-2 rounded ${statusColor(app.status)}`} />
                         <div className="flex-1 text-left">
                           <div className="font-medium">
                             {app.applicant_name}{' '}
                             <span className="text-xs text-muted-foreground"># {app.id}</span>
                           </div>
-                          <div className="text-xs text-muted-foreground">Applicant: {app.applicant_email}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Applicant: {app.applicant_email}
+                          </div>
                         </div>
                         <Badge variant="outline">{app.status}</Badge>
                       </AccordionTrigger>
 
-                      <AccordionContent className="p-4 space-y-4">
-                        <div className="border rounded p-3 space-y-2">
+                      <AccordionContent className="space-y-4 p-4">
+                        <div className="space-y-2 rounded border p-3">
                           <div className="font-semibold">Applicant</div>
                           <div className="grid grid-cols-2 gap-2 text-sm">
                             <div>
@@ -320,12 +447,12 @@ export default function JOCControllerApplicationsPage() {
                           </div>
                         </div>
 
-                        <div className="border rounded p-3">
-                          <div className="font-semibold mb-1">Firearm</div>
+                        <div className="rounded border p-3">
+                          <div className="mb-1 font-semibold">Firearm</div>
                           {!app.gun_uid ? (
                             <div className="text-sm text-muted-foreground">No firearm linked.</div>
                           ) : gun ? (
-                            <div className="text-sm space-y-1">
+                            <div className="space-y-1 text-sm">
                               <div>Make: {gun.make}</div>
                               <div>Model: {gun.model}</div>
                               <div>Caliber: {gun.caliber}</div>
@@ -336,10 +463,10 @@ export default function JOCControllerApplicationsPage() {
                           )}
                         </div>
 
-                        <div className="border rounded p-3 space-y-2">
+                        <div className="space-y-2 rounded border p-3">
                           <div className="font-semibold">Attachments</div>
                           {app.attachments?.length ? (
-                            <ul className="text-sm list-disc ml-5">
+                            <ul className="ml-5 list-disc text-sm">
                               {app.attachments.map((a) => (
                                 <li key={a}>
                                   <a href={getFileUrl(a)} target="_blank" rel="noreferrer" className="underline">
@@ -353,47 +480,47 @@ export default function JOCControllerApplicationsPage() {
                           )}
                         </div>
 
-                        <div className="border rounded p-3 space-y-3">
+                        <div className="space-y-3 rounded border p-3">
                           <div className="font-semibold">All Notes</div>
 
                           <div className="text-sm">
                             <b>Competency:</b>
-                            <div className="text-muted-foreground whitespace-pre-wrap">
+                            <div className="whitespace-pre-wrap text-muted-foreground">
                               {comp?.notes?.trim() ? comp.notes : '-'}
                             </div>
                           </div>
 
                           <div className="text-sm">
                             <b>CFR:</b>
-                            <div className="text-muted-foreground whitespace-pre-wrap">
+                            <div className="whitespace-pre-wrap text-muted-foreground">
                               {app.cfr_notes?.trim() ? app.cfr_notes : '-'}
                             </div>
                           </div>
 
                           <div className="text-sm">
                             <b>Dispol:</b>
-                            <div className="text-muted-foreground whitespace-pre-wrap">
+                            <div className="whitespace-pre-wrap text-muted-foreground">
                               {app.dispol_notes?.trim() ? app.dispol_notes : '-'}
                             </div>
                           </div>
 
                           <div className="text-sm">
                             <b>Propol:</b>
-                            <div className="text-muted-foreground whitespace-pre-wrap">
+                            <div className="whitespace-pre-wrap text-muted-foreground">
                               {app.propol_notes?.trim() ? app.propol_notes : '-'}
                             </div>
                           </div>
 
                           <div className="text-sm">
                             <b>JOC OIC:</b>
-                            <div className="text-muted-foreground whitespace-pre-wrap">
+                            <div className="whitespace-pre-wrap text-muted-foreground">
                               {app.joc_oic_notes?.trim() ? app.joc_oic_notes : '-'}
                             </div>
                           </div>
 
                           <div className="text-sm">
                             <b>JOC MID:</b>
-                            <div className="text-muted-foreground whitespace-pre-wrap">
+                            <div className="whitespace-pre-wrap text-muted-foreground">
                               {app.joc_mid_notes?.trim() ? app.joc_mid_notes : '-'}
                             </div>
                           </div>
